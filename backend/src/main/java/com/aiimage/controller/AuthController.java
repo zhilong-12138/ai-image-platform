@@ -317,6 +317,10 @@ public class AuthController {
             if (user == null) {
                 return ApiResponse.error(404, "用户不存在");
             }
+            // 检查积分（根据提示词配置消耗积分）
+            Integer balance = pointLogService.getUserBalance(userId);
+            user.setPoints(balance != null ? balance : 0);
+
             return ApiResponse.success(user);
         } catch (Exception e) {
             return ApiResponse.error("获取用户信息失败: " + e.getMessage());

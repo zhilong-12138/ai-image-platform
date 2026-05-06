@@ -39,9 +39,9 @@
     </div>
 
     <div class="table-card" v-loading="loading">
-      <el-table :data="tableData" style="width: 100%" :header-cell-style="tableHeaderStyle" fit>
+      <el-table :data="tableData" style="width: 100%;" :header-cell-style="tableHeaderStyle">
         <el-table-column prop="id" label="ID" width="60" />
-        <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="email" label="邮箱" width="200" show-overflow-tooltip />
         <el-table-column prop="level" label="等级" width="70">
           <template #default="{ row }">
             <span class="level-badge">Lv.{{ row.level ?? '-' }}</span>
@@ -60,7 +60,7 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" min-width="150" />
+        <el-table-column prop="createdAt" label="创建时间" width="160" />
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <div class="action-btns">
@@ -426,6 +426,21 @@ onMounted(() => {
   --el-table-header-bg-color: #F5F5F7;
 }
 
+:deep(.el-table .el-table__body-wrapper) {
+  table-layout: fixed;
+  width: 100%;
+}
+
+:deep(.el-table .el-table__body-wrapper table) {
+  table-layout: fixed;
+  width: 100% !important;
+}
+
+:deep(.el-table .el-table__header-wrapper table) {
+  table-layout: fixed;
+  width: 100% !important;
+}
+
 :deep(.el-table__body tr:hover > td) {
   background: #FAFAFA !important;
 }
@@ -437,13 +452,14 @@ onMounted(() => {
 }
 
 :deep(.el-table__header-wrapper .cell) {
-  white-space: normal;
-  word-break: normal;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 :deep(.el-table__body-wrapper .cell) {
-  white-space: normal;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 :deep(.el-table__row:last-child td) {

@@ -91,6 +91,7 @@ function handleNavigate(tab) {
     return
   }
   activeTab.value = tab
+  if (tab === 'works') loadWorks()
 }
 
 // ── Auth Modal ──
@@ -335,6 +336,11 @@ function onAuthLogout() {
 onMounted(() => {
   document.addEventListener('keydown', onKeydown)
   window.addEventListener('auth:logout', onAuthLogout)
+  window.addEventListener('preview:image', (e) => {
+    previewSrc.value = e.detail.src
+    previewName.value = e.detail.name || ''
+    previewVisible.value = true
+  })
 })
 onUnmounted(() => {
   document.removeEventListener('keydown', onKeydown)

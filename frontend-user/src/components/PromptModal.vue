@@ -47,7 +47,7 @@
         </div>
 
         <!-- Reference images -->
-        <div class="prompt-section-label"><span>参考图（可选，最多 4 张）</span></div>
+        <div class="prompt-section-label"><span>{{ refImageLabel }}</span></div>
         <div class="ref-images">
           <div
             v-for="(img, idx) in refImages"
@@ -59,7 +59,7 @@
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
-          <label v-if="refImages.length < 4" class="ref-upload-slot" :for="`ref-input-${uid}`">
+          <label v-if="refImages.length < maxRefImages" class="ref-upload-slot" :for="`ref-input-${uid}`">
             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
             <input :id="`ref-input-${uid}`" type="file" accept="image/*" @change="handleRefUpload" />
           </label>
@@ -82,7 +82,7 @@
           <button class="modal-btn cancel" @click="$emit('close')">取消</button>
           <button
             class="modal-btn primary"
-            :disabled="submitting || !editablePrompt.trim() || costPoints > userPoints"
+            :disabled="submitting || !editablePrompt.trim() || costPoints > userPoints || !refImageCountMet"
             @click="handleSubmit"
           >
             {{ submitting ? '提交中…' : '开始制作' }}
@@ -115,6 +115,24 @@ const submitting = ref(false)
 
 const costPoints = computed(() => props.prompt?.costPoints || 10)
 
+// 是否需要参考图
+const needsRefImage = computed(() => (props.prompt?.refImageCount ?? 0) > 0)
+// 已上传图片是否满足后端要求数量
+const refImageCountMet = computed(() => {
+  const required = props.prompt?.refImageCount ?? 0
+  const met = required === 0 ? true : refImageUrls.value.length >= required
+  console.log('[DEBUG] refImageCountMet:', met, 'required:', required, 'urls length:', refImageUrls.value.length)
+  return met
+})
+// 最大允许上传张数，取 refImageCount 和 4 的较小值
+const maxRefImages = computed(() => Math.min(props.prompt?.refImageCount ?? 0, 4))
+// 参考图标签文案
+const refImageLabel = computed(() => {
+  const n = props.prompt?.refImageCount ?? 0
+  if (n === 0) return '参考图'
+  return `参考图（需上传 ${n} 张，最多 ${maxRefImages.value} 张）`
+})
+
 const firstImg = computed(() => {
   if (!props.prompt?.imageUrls) return ''
   try {
@@ -142,6 +160,13 @@ watch(() => props.visible, async (val) => {
 async function handleRefUpload(e) {
   const file = e.target.files?.[0]
   if (!file) return
+  console.log('[DEBUG] handleRefUpload, file:', file.name, 'max:', maxRefImages.value, 'current:', refImages.value.length)
+  // 超过上限则禁止上传
+  if (refImages.value.length >= maxRefImages.value) {
+    console.log('[DEBUG] handleRefUpload: exceeds max, returning')
+    e.target.value = ''
+    return
+  }
 
   // Show local preview immediately
   const reader = new FileReader()
@@ -155,12 +180,17 @@ async function handleRefUpload(e) {
 }
 
 async function uploadToOss(file) {
+  console.log('[DEBUG] uploadToOss called, file:', file.name, 'refImages:', refImages.value.length, 'refImageUrls:', refImageUrls.value.length)
   try {
     const url = await uploadApi.image(file)
+    console.log('[DEBUG] uploadToOss response:', url, 'type:', typeof url)
     // url may be the full response or the data field
     const finalUrl = typeof url === 'string' ? url : (url.data || url)
+    console.log('[DEBUG] finalUrl:', finalUrl)
     refImageUrls.value.push(finalUrl)
-  } catch {
+    console.log('[DEBUG] refImageUrls after push:', refImageUrls.value.length, refImageUrls.value)
+  } catch (err) {
+    console.error('[DEBUG] uploadToOss error:', err)
     // Remove the preview if upload fails
     refImages.value.pop()
   }

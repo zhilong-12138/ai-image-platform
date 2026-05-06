@@ -54,8 +54,7 @@
               <a
                 v-if="work.status === 2"
                 :href="getFirstImg(work.resultImages)"
-                target="_blank"
-                rel="noopener"
+                download="ai-image.png"
                 class="action-btn"
                 title="下载"
                 @click.stop
