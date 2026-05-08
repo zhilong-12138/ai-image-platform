@@ -1,18 +1,8 @@
 package com.aiimage.controller;
 
 import com.aiimage.dto.ApiResponse;
-import com.aiimage.entity.Category;
-import com.aiimage.entity.GenerationRecord;
-import com.aiimage.entity.Prompt;
-import com.aiimage.entity.PointLog;
-import com.aiimage.entity.SysUser;
-import com.aiimage.entity.SystemConfig;
-import com.aiimage.service.CategoryService;
-import com.aiimage.service.GenerationRecordService;
-import com.aiimage.service.PointLogService;
-import com.aiimage.service.PromptService;
-import com.aiimage.service.SysUserService;
-import com.aiimage.service.SystemConfigService;
+import com.aiimage.entity.*;
+import com.aiimage.service.*;
 import com.aiimage.util.JwtUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -40,6 +30,7 @@ public class AdminController {
     private final PointLogService pointLogService;
     private final SystemConfigService systemConfigService;
     private final CategoryService categoryService;
+    private final FavoriteService favoriteService;
     private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
@@ -267,10 +258,11 @@ public class AdminController {
         return ApiResponse.success();
     }
 
-    @DeleteMapping("/prompts/{id}")
+    @DeleteMapping("/prompts/del/{id}")
     @Operation(summary = "删除提示词")
     public ApiResponse<Void> deletePrompt(@PathVariable Long id) {
         promptService.removeById(id);
+        favoriteService.remove(new QueryWrapper<Favorite>().eq("prompt_id", id));
         return ApiResponse.success();
     }
 

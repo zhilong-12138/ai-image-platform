@@ -42,7 +42,7 @@ export const promptApi = {
   list: (page = 1, pageSize = 10) => api.get('/admin/prompts', { params: { page, pageSize } }),
   create: (data) => api.post('/admin/prompts', data),
   update: (id, data) => api.put(`/admin/prompts/${id}`, data),
-  delete: (id) => api.delete(`/admin/prompts/${id}`),
+  delete: (id) => api.delete(`/admin/prompts/del/${id}`),
   publish: (id, status) => api.post(`/admin/prompts/${id}/publish`, null, { params: { status } })
 }
 

@@ -39,7 +39,7 @@
 
     <!-- Sidebar -->
     <TheSidebar :active-tab="activeTab" :is-logged-in="authStore.isLoggedIn" :collapsed="sidebarCollapsed"
-                @navigate="handleNavigate" @create="handleCreate" @logout="handleLogout" @login="loginVisible = true"
+                @navigate="handleNavigate" @create="handleCreate" @logout="handleLogout" @login="authView = 'login'"
                 @toggle-collapse="sidebarCollapsed = !sidebarCollapsed"/>
 
     <main class="main">
