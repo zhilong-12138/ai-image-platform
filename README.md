@@ -1,53 +1,32 @@
-# AI 图片生成平台 - 完整项目
+# AI 图片生成平台
 
-这是一个基于 Vue3 + Spring Boot 的现代化 AI 图片生成平台，包含用户前端、管理后台和后端 API 三个独立服务。
+基于 Vue3 + Spring Boot 的 AI 图片生成平台，包含用户前端、管理后台和后端 API 三个独立服务。
 
-## 项目结构
+## 项目架构
 
 ```
-ai-image-platform-v2/
-├── backend/                 # Spring Boot 后端服务 (端口 8082)
-│   ├── src/
-│   │   ├── main/java/com/aiimage/
-│   │   │   ├── entity/          # 数据库实体类
-│   │   │   ├── mapper/          # MyBatis Plus Mapper
-│   │   │   ├── service/         # 业务逻辑层
-│   │   │   ├── controller/      # API 控制器
-│   │   │   ├── dto/             # 数据传输对象
-│   │   │   └── AiImagePlatformApplication.java
-│   │   └── resources/
-│   │       ├── application.yml  # 应用配置
-│   │       └── init.sql         # 数据库初始化脚本
-│   └── pom.xml
-│
-├── ai-art-platform/           # Vue3 用户前端 (端口 5173)
-│   ├── src/
-│   ├── package.json
-│   └── vite.config.js
-│
-├── frontend-admin/          # Vue3 管理后台 (端口 8081)
-│   ├── src/
-│   ├── package.json
-│   └── vite.config.js
-│
-└── README.md
+ai-image-platform/
+├── backend/              # Spring Boot 后端 (端口 8082, 上下文 /api)
+├── frontend-user/        # Vue3 用户前端 (端口 8080)
+├── frontend-admin/       # Vue3 管理后台 (端口 8081)
+├── nginx.conf            # Nginx 反向代理配置
+└── docker-compose.yml    # Docker 容器编排
 ```
 
 ## 技术栈
 
 ### 后端
-- **Java 17** + **Spring Boot 3.2**
-- **MyBatis Plus** - ORM 框架
+- **Java 17** + **Spring Boot 3.2.4**
+- **MyBatis Plus 3.5.5** - ORM 框架
 - **MySQL 8** - 关系数据库
-- **Redis** - 缓存和会话存储
+- **Redis 7** - 缓存和会话
 - **Druid** - 数据库连接池
-- **Knife4j** - API 文档 (Swagger UI)
+- **Knife4j 4.5.0** - API 文档 (访问 /api/doc.html)
 - **JWT** - 身份认证
 - **Aliyun OSS** - 对象存储
 
 ### 前端
-- **Vue 3** - 前端框架
-- **Vite** - 构建工具
+- **Vue 3** + **Vite** + **TypeScript**
 - **Vue Router** - 路由管理
 - **Pinia** - 状态管理
 - **Element Plus** - UI 组件库
@@ -55,194 +34,175 @@ ai-image-platform-v2/
 
 ## 快速开始
 
-### 1. 环境要求
+### 环境要求
 - Java 17+
-- Node.js 16+
+- Node.js 18+
 - MySQL 8.0+
 - Redis 6.0+
+- Docker 20.10+ (可选)
 
-### 2. 数据库初始化
+### 方式一：Docker Compose 部署（推荐）
+
 ```bash
-# 使用 MySQL 客户端执行初始化脚本
-mysql -u root -p < backend/src/main/resources/init.sql
+# 1. 修改配置
+# 编辑 backend/src/main/resources/application.yml 配置数据库、Redis、OSS 等
+
+# 2. 启动所有服务
+docker-compose up -d
+
+# 3. 验证服务 (生产模式)
+# 用户前端: http://localhost:8080
+# 管理后台: http://localhost:8081
+# 后端 API:  http://localhost:8082/api/doc.html
+# Nginx:     http://localhost
 ```
 
-### 3. 配置修改
-编辑 `backend/src/main/resources/application.yml`，修改以下配置：
+### 方式二：本地开发
+
+```bash
+# 1. 初始化数据库
+mysql -u root -p < backend/src/main/resources/init.sql
+
+# 2. 启动后端
+cd backend
+mvn clean install
+mvn spring-boot:run
+
+# 3. 启动用户前端 (端口 5173)
+cd frontend-user
+npm install
+npm run dev
+
+# 4. 启动管理后台 (端口 5277，新终端)
+cd frontend-admin
+npm install
+npm run dev
+```
+
+## 服务端口
+
+| 服务 | 开发端口 | Docker 端口 | 访问地址 |
+|------|----------|-------------|----------|
+| 用户前端 | 5173 | 8080 | http://localhost:5173 |
+| 管理后台 | 5277 | 8081 | http://localhost:5277 |
+| 后端 API | 8082 | 8082 | http://localhost:8082/api |
+| API 文档 | - | - | http://localhost:8082/api/doc.html |
+| Nginx | - | 80 | http://localhost |
+
+## 核心功能
+
+### 用户端
+- 邮箱验证码登录/注册
+- 提示词模板浏览
+- AI 图片生成
+- 生成记录管理
+- 图片收藏
+- 个人中心与积分管理
+
+### 管理后台
+- 提示词管理 (CRUD)
+- 用户管理
+- 积分管理
+- 生成记录审核
+- 系统配置
+- 数据统计
+
+### 后端 API
+- JWT 用户认证
+- 提示词管理
+- 异步生成任务
+- 积分系统
+- 文件上传 (OSS)
+- 邮箱验证码
+
+## 目录结构
+
+### 后端 (backend/src/main/java/com/aiimage/)
+```
+├── aspect/          # AOP 切面
+├── config/          # 配置类 (JWT、Swagger、Web)
+├── controller/      # REST API 控制器
+├── dto/              # 数据传输对象
+├── entity/           # 数据库实体
+├── mapper/           # MyBatis Plus Mapper
+├── service/         # 业务逻辑层
+├── task/            # 异步任务
+└── util/            # 工具类 (JWT、OSS、邮件)
+```
+
+### 前端
+```
+frontend-user/src/
+├── api/             # API 调用
+├── components/      # 公共组件
+├── stores/          # Pinia 状态
+├── views/           # 页面组件
+├── styles/          # 全局样式
+└── App.vue          # 根组件
+
+frontend-admin/src/
+└── ... (同上)
+```
+
+## 数据库表
+
+| 表名 | 说明 |
+|------|------|
+| sys_user | 用户表 |
+| prompt | 提示词模板表 |
+| generation_record | 生成记录表 |
+| point_log | 积分日志表 |
+| favorite | 收藏表 |
+| email_code | 邮箱验证码表 |
+| system_config | 系统配置表 |
+
+详见 `backend/src/main/resources/init.sql`
+
+## 配置说明
+
+### application.yml 敏感字段
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/ai_image_db
-    username: root
-    password: your-password
+    password: your-db-password
   redis:
-    host: localhost
-    port: 6379
+    password: your-redis-password
   mail:
     username: your-email@qq.com
     password: your-app-password
 
 app:
   jwt:
-    secret: your-secret-key-change-in-production
+    secret: your-production-secret-key
   oss:
     access-key-id: your-access-key-id
     access-key-secret: your-access-key-secret
 ```
 
-### 4. 启动后端服务
-```bash
-cd backend
-mvn clean install
-mvn spring-boot:run
-# 后端服务运行在 http://localhost:8082/api
-# API 文档访问 http://localhost:8082/api/doc.html
-```
+## Nginx 配置
 
-### 5. 启动前端服务
-```bash
-# 用户前端
-cd  ai-art-platform 
-npm install
-npm run dev
-# 访问 http://localhost:8080
-
-# 管理后台
-cd frontend-admin
-npm install
-npm run dev
-# 访问 http://localhost:8081
-```
-
-### 6. Nginx 反向代理配置
-```nginx
-server {
-    listen 80;
-    server_name localhost;
-
-    # 用户前端
-    location / {
-        proxy_pass http://localhost:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    # 管理后台
-    location /admin/ {
-        proxy_pass http://localhost:8081/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    # 后端 API
-    location /api/ {
-        proxy_pass http://localhost:8082/api/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-## 核心功能
-
-### 用户前端
-- ✅ 邮箱验证码登录
-- ✅ 提示词模板浏览
-- ✅ AI 图片生成
-- ✅ 生成记录管理
-- ✅ 图片收藏
-- ✅ 个人中心
-
-### 管理后台
-- ✅ 提示词管理 (CRUD)
-- ✅ 用户管理
-- ✅ 积分管理
-- ✅ 生成记录审核
-- ✅ 系统配置
-- ✅ 数据统计
-
-### 后端 API
-- ✅ 用户认证 (JWT)
-- ✅ 提示词管理
-- ✅ 生成任务提交
-- ✅ 积分系统
-- ✅ 文件上传 (OSS)
-- ✅ 邮箱验证码
-
-## 数据库设计
-
-### 核心表
-1. **sys_user** - 用户表
-2. **prompt** - 提示词表
-3. **generation_record** - 生成记录表
-4. **point_log** - 积分日志表
-5. **favorite** - 收藏表
-6. **email_code** - 邮箱验证码表
-7. **system_config** - 系统配置表
-
-详见 `backend/src/main/resources/init.sql`
-
-## API 文档
-
-启动后端服务后，访问 Knife4j UI：
-```
-http://localhost:8082/api/doc.html
-```
-
-## 开发指南
-
-### 后端开发
-1. 在 `entity` 包中定义数据模型
-2. 在 `mapper` 包中创建 MyBatis Plus Mapper
-3. 在 `service` 包中实现业务逻辑
-4. 在 `controller` 包中暴露 API 接口
-5. 使用 Knife4j 注解生成 API 文档
-
-### 前端开发
-1. 在 `src/views` 中创建页面组件
-2. 在 `src/stores` 中定义 Pinia 状态
-3. 在 `src/api` 中定义 API 调用函数
-4. 在 `src/router` 中配置路由
-5. 使用 Element Plus 组件构建 UI
-
-## 部署
-
-### Docker 部署
-```bash
-# 构建后端 Docker 镜像
-cd backend
-docker build -t ai-image-backend:1.0 .
-docker run -d -p 8082:8082 ai-image-backend:1.0
-
-# 构建前端 Docker 镜像
-cd frontend-user
-docker build -t ai-image-frontend:1.0 .
-docker run -d -p 8080:8080 ai-image-frontend:1.0
-```
-
-### 生产环境建议
-- 使用 HTTPS 加密通信
-- 配置 CORS 跨域策略
-- 启用 Redis 持久化
-- 定期备份数据库
-- 使用 CDN 加速静态资源
-- 配置日志收集和监控
+通过 nginx.conf 配置反向代理：
+- `/` → 用户前端 (8080)
+- `/admin` → 管理后台 (8081)
+- `/api` → 后端 API (8082)
 
 ## 常见问题
 
-### Q: 如何修改初始积分？
-A: 编辑 `init.sql` 中的 `system_config` 表，修改 `init_points` 值。
+**Q: 如何修改初始积分？**
+A: 编辑 `backend/src/main/resources/init.sql` 中的 `system_config` 表。
 
-### Q: 如何集成真实的 AI API？
-A: 在 `GenerationController` 中实现 `submit` 方法，调用真实的 AI API（如 Stability AI）。
+**Q: 如何添加管理员？**
+A: 在数据库中插入用户记录，设置 `role = 'admin'`。
 
-### Q: 如何处理大文件上传？
-A: 使用 Aliyun OSS 的分片上传功能，在 `FileController` 中实现。
+**Q: 如何处理大文件上传？**
+A: 修改 `nginx.conf` 中的 `client_max_body_size`（默认 20M）。
 
-## 许可证
+## 相关文档
 
-MIT License
+- [部署指南](DEPLOYMENT.md) - 完整的生产环境部署说明
+- [CLAUDE.md](CLAUDE.md) - 开发指南
+- [API 文档](http://localhost:8082/api/doc.html) - 启动后端后访问
 
-## 支持
+## License
 
-如有问题，请提交 Issue 或联系技术支持。
+MIT
