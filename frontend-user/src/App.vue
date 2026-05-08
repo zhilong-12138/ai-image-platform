@@ -1,82 +1,86 @@
 <template>
   <div class="app-layout">
-    <TheSidebar :active-tab="activeTab" :is-logged-in="authStore.isLoggedIn" @navigate="handleNavigate" @create="handleCreate" @logout="handleLogout" @login="loginVisible = true" />
+    <TheSidebar :active-tab="activeTab" :is-logged-in="authStore.isLoggedIn" @navigate="handleNavigate"
+                @create="handleCreate" @logout="handleLogout" @login="loginVisible = true"/>
 
-  <main class="main">
-    <FeedView      v-if="activeTab === 'feed'"      @open="openPrompt" @favorite="handleFavorite" />
-    <WorksView     v-if="activeTab === 'works'"     :works="works" :loading="worksLoading" @delete="showDelete" @preview="showPreview" @retry="retryWork" @load-more="loadMoreWorks" />
-    <FavoritesView v-if="activeTab === 'favorites'" @open="openPrompt" @unfavorite="handleUnfavorite" />
-    <ProfileView   v-if="activeTab === 'profile'"  @refresh="refreshProfile" />
-  </main>
+    <main class="main">
+      <FeedView v-if="activeTab === 'feed'" @open="openPrompt" @favorite="handleFavorite"/>
+      <WorksView v-if="activeTab === 'works'" :works="works" :loading="worksLoading" @delete="showDelete"
+                 @preview="showPreview" @retry="retryWork" @load-more="loadMoreWorks"/>
+      <FavoritesView v-if="activeTab === 'favorites'" @open="openPrompt" @unfavorite="handleUnfavorite"/>
+      <ProfileView v-if="activeTab === 'profile'" @refresh="refreshProfile"/>
+      <CreateImageView v-if="activeTab === 'create'"/>
+    </main>
 
-  <!-- Auth Modal -->
-  <Transition name="fade">
-    <div v-if="authView" class="auth-overlay">
-      <LoginView
-        v-if="authView === 'login'"
-        @success="onAuthSuccess"
-        @register="authView = 'register'"
-        @reset="authView = 'reset'"
-      />
-      <RegisterView
-        v-if="authView === 'register'"
-        @success="onRegisterSuccess"
-        @back="authView = 'login'"
-      />
-      <ResetPasswordView
-        v-if="authView === 'reset'"
-        @success="onResetSuccess"
-        @back="authView = 'login'"
-      />
-    </div>
-  </Transition>
+    <!-- Auth Modal -->
+    <Transition name="fade">
+      <div v-if="authView" class="auth-overlay">
+        <LoginView
+            v-if="authView === 'login'"
+            @success="onAuthSuccess"
+            @register="authView = 'register'"
+            @reset="authView = 'reset'"
+        />
+        <RegisterView
+            v-if="authView === 'register'"
+            @success="onRegisterSuccess"
+            @back="authView = 'login'"
+        />
+        <ResetPasswordView
+            v-if="authView === 'reset'"
+            @success="onResetSuccess"
+            @back="authView = 'login'"
+        />
+      </div>
+    </Transition>
 
-  <!-- Modals -->
-  <PromptModal
-    :visible="promptModalVisible"
-    :prompt="selectedPrompt"
-    :is-create-mode="isCreateMode"
-    :user-points="authStore.user?.points || 0"
-    @close="closePrompt"
-    @create="handleCreateSubmit"
-  />
+    <!-- Modals -->
+    <PromptModal
+        :visible="promptModalVisible"
+        :prompt="selectedPrompt"
+        :is-create-mode="isCreateMode"
+        :user-points="authStore.user?.points || 0"
+        @close="closePrompt"
+        @create="handleCreateSubmit"
+    />
 
-  <DeleteModal
-    :visible="deleteModalVisible"
-    :name="deleteTarget?.name"
-    @close="closeDelete"
-    @confirm="confirmDelete"
-  />
+    <DeleteModal
+        :visible="deleteModalVisible"
+        :name="deleteTarget?.name"
+        @close="closeDelete"
+        @confirm="confirmDelete"
+    />
 
-  <PreviewModal
-    :visible="previewVisible"
-    :src="previewSrc"
-    :name="previewName"
-    @close="previewVisible = false"
-  />
+    <PreviewModal
+        :visible="previewVisible"
+        :src="previewSrc"
+        :name="previewName"
+        @close="previewVisible = false"
+    />
 
-  <!-- Toast -->
-  <Toast :visible="appStore.toastVisible" :message="appStore.toastMsg" :is-error="appStore.toastError" />
+    <!-- Toast -->
+    <Toast :visible="appStore.toastVisible" :message="appStore.toastMsg" :is-error="appStore.toastError"/>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
-import TheSidebar    from './components/TheSidebar.vue'
-import FeedView      from './views/FeedView.vue'
-import WorksView     from './views/WorksView.vue'
+import {ref, reactive, onMounted, onUnmounted} from 'vue'
+import TheSidebar from './components/TheSidebar.vue'
+import FeedView from './views/FeedView.vue'
+import WorksView from './views/WorksView.vue'
 import FavoritesView from './views/FavoritesView.vue'
-import ProfileView   from './views/ProfileView.vue'
-import PromptModal   from './components/PromptModal.vue'
-import DeleteModal   from './components/DeleteModal.vue'
-import PreviewModal  from './components/PreviewModal.vue'
-import Toast         from './components/Toast.vue'
-import LoginView     from './components/LoginView.vue'
-import RegisterView  from './components/RegisterView.vue'
+import ProfileView from './views/ProfileView.vue'
+import CreateImageView from './views/CreateImageView.vue'
+import PromptModal from './components/PromptModal.vue'
+import DeleteModal from './components/DeleteModal.vue'
+import PreviewModal from './components/PreviewModal.vue'
+import Toast from './components/Toast.vue'
+import LoginView from './components/LoginView.vue'
+import RegisterView from './components/RegisterView.vue'
 import ResetPasswordView from './components/ResetPasswordView.vue'
-import { useAuthStore } from './stores/authStore.js'
-import { useAppStore } from './stores/appStore.js'
-import { promptApi, generationApi, favApi } from './api/services.js'
+import {useAuthStore} from './stores/authStore.js'
+import {useAppStore} from './stores/appStore.js'
+import {promptApi, generationApi, favApi} from './api/services.js'
 
 const authStore = useAuthStore()
 const appStore = useAppStore()
@@ -108,7 +112,7 @@ function requireAuth(actionFn, args) {
   if (authStore.isLoggedIn) {
     actionFn(...args)
   } else {
-    pendingAction.value = { fn: actionFn, args }
+    pendingAction.value = {fn: actionFn, args}
     authView.value = 'login'
   }
 }
@@ -116,7 +120,7 @@ function requireAuth(actionFn, args) {
 function onAuthSuccess() {
   authView.value = null
   if (pendingAction.value) {
-    const { fn, args } = pendingAction.value
+    const {fn, args} = pendingAction.value
     pendingAction.value = null
     fn(...args)
   } else {
@@ -143,6 +147,10 @@ const promptModalVisible = ref(false)
 const selectedPrompt = ref(null)
 const isCreateMode = ref(false)
 
+// PromptModal is only used for opening existing prompts
+// (clicking a prompt card → open in modal)
+// Create mode lives in CreateImageView as a standalone page
+
 function openPrompt(prompt) {
   isCreateMode.value = false
   selectedPrompt.value = prompt
@@ -151,24 +159,22 @@ function openPrompt(prompt) {
 
 function handleCreate() {
   if (!authStore.isLoggedIn) {
-    pendingAction.value = { fn: openCreate, args: [] }
+    pendingAction.value = {fn: navigateToCreate, args: []}
     authView.value = 'login'
     return
   }
-  openCreate()
+  navigateToCreate()
 }
 
-function openCreate() {
-  isCreateMode.value = true
-  selectedPrompt.value = null
-  promptModalVisible.value = true
+function navigateToCreate() {
+  activeTab.value = 'create'
 }
 
 function closePrompt() {
   promptModalVisible.value = false
 }
 
-async function handleCreateSubmit({ promptContent, params, refImages }) {
+async function handleCreateSubmit({promptContent, params, refImages}) {
   if (!promptContent?.trim()) {
     appStore.showToast('请填写提示词', true)
     return
@@ -176,7 +182,7 @@ async function handleCreateSubmit({ promptContent, params, refImages }) {
   try {
     const data = {
       promptId: selectedPrompt.value?.id,
-      params: JSON.stringify({ promptContent, ...params }),
+      params: JSON.stringify({promptContent, ...params}),
       refImages: JSON.stringify(refImages),
     }
     await generationApi.submit(data)
@@ -192,7 +198,7 @@ async function handleCreateSubmit({ promptContent, params, refImages }) {
 // ── Favorites ──
 function handleFavorite(prompt) {
   if (!authStore.isLoggedIn) {
-    pendingAction.value = { fn: toggleFavoriteInternal, args: [prompt] }
+    pendingAction.value = {fn: toggleFavoriteInternal, args: [prompt]}
     authView.value = 'login'
     return
   }
@@ -214,7 +220,7 @@ async function toggleFavoriteInternal(prompt) {
 
 async function handleUnfavorite(prompt) {
   if (!authStore.isLoggedIn) {
-    pendingAction.value = { fn: unfavoriteInternal, args: [prompt] }
+    pendingAction.value = {fn: unfavoriteInternal, args: [prompt]}
     authView.value = 'login'
     return
   }
@@ -241,7 +247,7 @@ const worksTotal = ref(0)
 async function loadWorks() {
   worksLoading.value = true
   try {
-    const data = await generationApi.list({ page: 1, pageSize: 20 })
+    const data = await generationApi.list({page: 1, pageSize: 20})
     works.length = 0
     works.push(...(data.records || []))
     worksTotal.value = data.total || 0
@@ -261,7 +267,7 @@ async function loadMoreWorks() {
   if (works.length >= worksTotal.value) return
   worksPage.value++
   try {
-    const data = await generationApi.list({ page: worksPage.value, pageSize: 20 })
+    const data = await generationApi.list({page: worksPage.value, pageSize: 20})
     works.push(...(data.records || []))
   } catch (e) {
     appStore.showToast(e.message || '加载更多失败', true)
@@ -347,5 +353,5 @@ onUnmounted(() => {
   window.removeEventListener('auth:logout', onAuthLogout)
 })
 
-defineExpose({ showLogin })
+defineExpose({showLogin})
 </script>

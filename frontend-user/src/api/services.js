@@ -26,6 +26,7 @@ export const categoryApi = {
 // 生成记录
 export const generationApi = {
   list: (params) => api.get('/generation/list', { params }),
+  count: () => api.get('/generation/count'),
   submit: (data) => api.post('/generation/submit', data),
   status: (id) => api.get(`/generation/status/${id}`),
   retry: (id) => api.post(`/generation/retry/${id}`),
@@ -40,16 +41,16 @@ export const userApi = {
 export const authApi = {
   // 发送登录验证码
   sendCode: (email) => api.post('/user/sendCode', null, { params: { email } }),
-  // 登录 (邮箱 + 密码)
-  login: (email, password) => api.post('/user/login', null, { params: { email, password } }),
-  // 注册 (邮箱 + 验证码 + 密码 + 邀请码)
+  // 登录 (邮箱 + 密码，密码 Base64 编码)
+  login: (email, password) => api.post('/user/login', null, { params: { email, password: btoa(password) } }),
+  // 注册 (邮箱 + 验证码 + 密码 Base64 编码 + 邀请码)
   register: (email, code, password, inviteCode) =>
-    api.post('/user/register', null, { params: { email, code, password, inviteCode } }),
+    api.post('/user/register', null, { params: { email, code, password: btoa(password), inviteCode } }),
   // 重置密码 - 发送验证码
   resetPasswordSendCode: (email) => api.post('/user/resetPassword/sendCode', null, { params: { email } }),
-  // 重置密码 (邮箱 + 验证码 + 新密码)
+  // 重置密码 (邮箱 + 验证码 + 新密码 Base64 编码)
   resetPassword: (email, code, password) =>
-    api.post('/user/resetPassword', null, { params: { email, code, password } }),
+    api.post('/user/resetPassword', null, { params: { email, code, password: btoa(password) } }),
 }
 
 // 文件上传

@@ -35,10 +35,10 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (path.equals("/user/login")
                 || path.equals("/user/sendCode")
                 || path.equals("/user/register")
-            || path.startsWith("/category/")
-            || path.startsWith("/upload/")
-            || path.contains("/admin/")
-            || path.startsWith("/doc")
+                || path.equals("/admin/login")
+                || path.startsWith("/category/")
+                || path.startsWith("/upload/")
+                || path.startsWith("/doc")
                 || path.startsWith("/swagger")
                 || path.startsWith("/v3/")) {
             return true;

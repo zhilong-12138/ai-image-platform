@@ -19,7 +19,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +39,16 @@ public class AuthController {
     private final EmailUtil emailUtil;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    
+
+    /** Base64 解码前端传来的密码 */
+    private String decodePassword(String encoded) {
+        try {
+            return new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return encoded; // 兼容旧格式或非 Base64 字符串
+        }
+    }
+
     @PostMapping("/sendCode")
     @Operation(summary = "发送邮箱验证码")
     public ApiResponse<Void> sendCode(@RequestParam String email) {
@@ -86,7 +97,7 @@ public class AuthController {
             }
 
             // 验证密码
-            if (!passwordEncoder.matches(password, user.getPassword())) {
+            if (!passwordEncoder.matches(decodePassword(password), user.getPassword())) {
                 return ApiResponse.error(400, "邮箱或密码错误");
             }
 
@@ -144,7 +155,7 @@ public class AuthController {
             // 创建新用户
             SysUser user = SysUser.builder()
                     .email(email)
-                    .password(passwordEncoder.encode(password))
+                    .password(passwordEncoder.encode(decodePassword(password)))
                     .level(1)
                     .inviteCode(sysUserService.generateInviteCode())
                     .status(1)
@@ -155,7 +166,7 @@ public class AuthController {
 
             // 注册赠送积分
             String initPointsStr = systemConfigService.getValue("init_points");
-            int initPoints = 100;
+            int initPoints = 30;
             try {
                 if (initPointsStr != null && !initPointsStr.isEmpty()) initPoints = Integer.parseInt(initPointsStr);
             } catch (NumberFormatException ignored) {}
@@ -298,7 +309,7 @@ public class AuthController {
                 return ApiResponse.error(400, "密码长度至少6位");
             }
 
-            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setPassword(passwordEncoder.encode(decodePassword(newPassword)));
             user.setUpdatedAt(LocalDateTime.now());
             sysUserService.updateById(user);
 

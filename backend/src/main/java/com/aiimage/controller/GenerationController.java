@@ -4,11 +4,9 @@ import com.aiimage.dto.ApiResponse;
 import com.aiimage.entity.GenerationRecord;
 import com.aiimage.entity.PointLog;
 import com.aiimage.entity.Prompt;
-import com.aiimage.entity.SysUser;
 import com.aiimage.service.GenerationRecordService;
 import com.aiimage.service.PointLogService;
 import com.aiimage.service.PromptService;
-import com.aiimage.service.SysUserService;
 import com.aiimage.task.GenerationTask;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -146,5 +144,16 @@ public class GenerationController {
         // 异步执行生成任务
         generationTask.processGeneration(record.getId());
         return ApiResponse.success();
+    }
+
+    @GetMapping("/count")
+    @Operation(summary = "查询用户生成图片总数")
+    public ApiResponse<Integer> countByUserId(@RequestAttribute Long userId) {
+        Long count = generationRecordService.count(
+                new QueryWrapper<GenerationRecord>()
+                        .select("id")
+                        .eq("user_id", userId)
+        );
+        return ApiResponse.success(count.intValue());
     }
 }

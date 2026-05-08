@@ -18,10 +18,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,6 +146,7 @@ public class AdminController {
                 .balance(newBalance)
                 .remark("管理员调整")
                 .isSettled(1)
+                .createdAt(LocalDateTime.now())
                 .build();
         pointLogService.save(pointLog);
 

@@ -103,7 +103,7 @@
         <div class="form-row">
           <div class="form-field">
             <label class="form-label">内容</label>
-            <textarea v-model="editForm.content" class="form-input form-textarea" rows="4" placeholder="提示词内容"></textarea>
+            <textarea v-model="editForm.content" class="form-input form-textarea" rows="4" placeholder="提示词内容" @paste="handleContentPaste"></textarea>
           </div>
         </div>
         <div class="form-row">
@@ -238,6 +238,43 @@ const editForm = ref({
 
 const triggerUpload = () => {
   uploadInput.value?.click()
+}
+
+const handleContentPaste = async (e) => {
+  const items = e.clipboardData?.items
+  if (!items) return
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault()
+      const file = item.getAsFile()
+      if (!file) return
+      if (file.size > 5 * 1024 * 1024) {
+        ElMessage.error('图片大小不能超过 5MB')
+        return
+      }
+      uploading.value = true
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        const res = await api.post('/upload/image', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        if (res.code === 200) {
+          // 把图片URL追加到内容末尾，用换行分隔
+          editForm.value.imageUrls = res.data
+          editForm.value.content = editForm.value.content + (editForm.value.content ? '\n' : '') + `[图片]${res.data}`
+          ElMessage.success('图片粘贴上传成功')
+        } else {
+          ElMessage.error(res.msg || '上传失败')
+        }
+      } catch {
+        ElMessage.error('上传失败')
+      } finally {
+        uploading.value = false
+      }
+      return
+    }
+  }
 }
 
 const handleFileChange = async (e) => {

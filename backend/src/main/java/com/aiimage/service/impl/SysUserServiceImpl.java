@@ -13,7 +13,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     
     @Override
     public SysUser findByEmail(String email) {
-        return this.getOne(new QueryWrapper<SysUser>().eq("email", email));
+        return this.getOne(new QueryWrapper<SysUser>()
+                .eq("email", email)
+                .eq("status", 1));
     }
     
     @Override

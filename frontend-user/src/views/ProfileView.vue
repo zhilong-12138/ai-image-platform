@@ -56,9 +56,9 @@
             <span>ID</span><span>时间</span><span>消耗</span><span>剩余</span>
           </div>
           <div
-            v-for="row in creditHistory"
-            :key="row.id"
-            class="credits-table-row"
+              v-for="row in creditHistory"
+              :key="row.id"
+              class="credits-table-row"
           >
             <span class="mono">#{{ String(row.id).padStart(4, '0') }}</span>
             <span>{{ formatDate(row.createdAt) }}</span>
@@ -72,8 +72,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useAuthStore } from '../stores/authStore.js'
+import {ref, computed, onMounted} from 'vue'
+import {useAuthStore} from '../stores/authStore.js'
 
 defineEmits(['refresh'])
 
@@ -90,7 +90,7 @@ function formatDate(dt) {
   const d = new Date(dt)
   if (isNaN(d.getTime())) return dt
   const pad = n => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 async function copyInvite() {
@@ -99,25 +99,26 @@ async function copyInvite() {
     await navigator.clipboard.writeText(link)
     copied.value = true
     setTimeout(() => (copied.value = false), 1500)
-  } catch {}
+  } catch {
+  }
 }
 
 onMounted(async () => {
   // Refresh user info
   await authStore.fetchUserInfo()
 
-  // Load generation history for stats
-  loadingHistory.value = true
+  // Load generation count for stats
   try {
-    const { generationApi } = await import('../api/services.js')
-    const data = await generationApi.list({ page: 1, pageSize: 1 })
-    totalGenerations.value = data.total || 0
-  } catch {}
+    const {generationApi} = await import('../api/services.js')
+    const res = await generationApi.count()
+    totalGenerations.value = res || 0
+  } catch {
+  }
 
   // Load point logs
   try {
-    const { api } = await import('../api/index.js')
-    const res = await api.get('/admin/point-logs', { params: { page: 1, pageSize: 20 } })
+    const {api} = await import('../api/index.js')
+    const res = await api.get('/admin/point-logs', {params: {page: 1, pageSize: 20}})
     creditHistory.value = res.data?.records || res.records || []
   } catch {
     creditHistory.value = []
