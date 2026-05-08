@@ -222,4 +222,29 @@ async function handleLogin() {
   font-weight: 500;
 }
 .link:hover { text-decoration: underline; }
+
+@media (max-width: 768px) {
+  .login-page {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 32px 24px 40px;
+  }
+  .login-logo {
+    margin-bottom: 24px;
+  }
+  .wordmark {
+    font-size: 28px;
+  }
+  .login-title {
+    font-size: 20px;
+  }
+  .form-group input {
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+}
 </style>

@@ -8,10 +8,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/prompt")
+    @RequestMapping("/prompt")
 @Tag(name = "提示词管理", description = "提示词列表、详情等接口")
 @RequiredArgsConstructor
 public class PromptController {
@@ -23,12 +24,16 @@ public class PromptController {
     public ApiResponse<Page<Prompt>> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize,
-            @RequestParam(required = false) Long categoryId) {
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String description) {
         QueryWrapper<Prompt> wrapper = new QueryWrapper<Prompt>()
                 .eq("status", 1)
                 .orderByAsc("sort");
         if (categoryId != null) {
             wrapper.eq("category_id", categoryId);
+        }
+        if (StringUtils.isNotBlank(description)) {
+            wrapper.like("description", description);
         }
         Page<Prompt> result = promptService.page(
                 new Page<>(page, pageSize),

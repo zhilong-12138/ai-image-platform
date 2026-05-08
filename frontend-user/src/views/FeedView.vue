@@ -6,6 +6,28 @@
       <p class="section-subtitle">浏览社区创作者，汲取灵感，用 AI 将想象化为现实。</p>
     </header>
 
+    <!-- Search bar -->
+    <div class="search-section">
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input
+          v-model="searchQuery"
+          type="text"
+          class="search-input"
+          placeholder="搜索提示词..."
+          @input="handleSearch"
+        />
+        <button v-if="searchQuery" class="search-clear" @click="clearSearch">
+          <svg viewBox="0 0 24 24">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
     <!-- Category filters -->
     <div class="filter-bar">
       <button
@@ -70,6 +92,8 @@ const prompts = ref([])
 const loading = ref(false)
 const page = ref(1)
 const hasMore = ref(false)
+const searchQuery = ref('')
+let searchTimeout = null
 
 async function loadCategories() {
   try {
@@ -89,6 +113,7 @@ async function loadPrompts(reset = false) {
   try {
     const params = { page: page.value, pageSize: 20 }
     if (activeCategoryId.value) params.categoryId = activeCategoryId.value
+    if (searchQuery.value) params.description = searchQuery.value
     const data = await promptApi.list(params)
     const records = data.records || data || []
     if (reset) {
@@ -102,6 +127,18 @@ async function loadPrompts(reset = false) {
   } finally {
     loading.value = false
   }
+}
+
+function handleSearch() {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    loadPrompts(true)
+  }, 300)
+}
+
+function clearSearch() {
+  searchQuery.value = ''
+  loadPrompts(true)
 }
 
 function selectCategory(id) {
@@ -143,6 +180,78 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Search Section */
+.search-section {
+  margin-bottom: 12px;
+}
+
+.search-wrapper {
+  position: relative;
+  max-width: 400px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-clear:hover {
+  background: var(--border);
+  color: var(--fg);
+}
+
+.search-clear svg {
+  width: 16px;
+  height: 16px;
+}
+
 .loading-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -165,5 +274,29 @@ onMounted(() => {
   text-align: center;
   padding: 60px;
   color: var(--muted);
+}
+
+@media (max-width: 768px) {
+  .search-section {
+    margin-bottom: 12px;
+  }
+  .search-wrapper {
+    max-width: 100%;
+  }
+  .search-input {
+    padding: 14px 40px 14px 44px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+  .loading-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .loading-card {
+    height: 200px;
+  }
+  .empty-state {
+    padding: 40px 20px;
+  }
 }
 </style>

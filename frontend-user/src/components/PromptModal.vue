@@ -617,4 +617,41 @@ function handleSubmit() {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .prompt-modal-box {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 24px 20px 32px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .prompt-modal-header {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .prompt-thumb {
+    width: 100%;
+    height: 180px;
+  }
+  .prompt-textarea {
+    min-height: 100px;
+  }
+  .ref-upload-slot {
+    width: 70px;
+    height: 70px;
+  }
+  .modal-btns {
+    flex-direction: column;
+  }
+  .modal-btn {
+    width: 100%;
+  }
+}
 </style>

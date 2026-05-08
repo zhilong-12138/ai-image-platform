@@ -22,4 +22,19 @@ defineEmits(['close'])
 .preview-close:hover { background: rgba(255,255,255,0.25); }
 .preview-close svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .preview-name { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.8); font-size: 14px; background: rgba(0,0,0,0.5); padding: 8px 18px; border-radius: 100px; backdrop-filter: blur(8px); white-space: nowrap; }
+
+@media (max-width: 768px) {
+  .preview-overlay {
+    padding: 16px;
+  }
+  .preview-img {
+    max-width: 100%;
+    max-height: 85vh;
+  }
+  .preview-name {
+    bottom: 80px;
+    font-size: 12px;
+    padding: 6px 14px;
+  }
+}
 </style>

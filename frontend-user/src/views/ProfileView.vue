@@ -135,4 +135,10 @@ onMounted(async () => {
   padding: 20px;
   font-size: 13px;
 }
+
+@media (max-width: 768px) {
+  .loading-hint {
+    padding: 16px;
+  }
+}
 </style>

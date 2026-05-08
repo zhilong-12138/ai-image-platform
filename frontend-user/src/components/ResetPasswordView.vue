@@ -343,4 +343,29 @@ async function handleReset() {
   color: var(--muted);
   margin: 0;
 }
+
+@media (max-width: 768px) {
+  .reset-page {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .reset-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 32px 24px 40px;
+  }
+  .input-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .send-code-btn {
+    padding: 12px 16px;
+    width: 100%;
+    text-align: center;
+  }
+  .form-group input {
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+}
 </style>

@@ -29,4 +29,23 @@ defineEmits(['close', 'confirm'])
 .modal-btn-small.cancel:hover { background: oklch(89% 0.015 80); }
 .modal-btn-small.confirm { background: oklch(55% 0.18 25); color: #fff; }
 .modal-btn-small.confirm:hover { background: oklch(50% 0.18 25); }
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal-box {
+    border-radius: 16px 16px 0 0;
+    padding: 24px 20px 32px;
+    max-width: 100%;
+  }
+  .delete-btns {
+    flex-direction: column;
+  }
+  .modal-btn-small {
+    width: 100%;
+    padding: 14px;
+  }
+}
 </style>

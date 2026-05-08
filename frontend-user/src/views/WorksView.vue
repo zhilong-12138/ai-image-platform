@@ -163,4 +163,17 @@ function showPreviewImg(work) {
   margin-top: 8px;
   opacity: 0.7;
 }
+
+@media (max-width: 768px) {
+  .works-loading {
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .works-skeleton {
+    height: 72px;
+  }
+  .empty-state {
+    padding: 40px 20px;
+  }
+}
 </style>

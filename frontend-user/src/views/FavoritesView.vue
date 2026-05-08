@@ -108,4 +108,17 @@ onMounted(async () => {
   margin-top: 8px;
   opacity: 0.7;
 }
+
+@media (max-width: 768px) {
+  .loading-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .loading-card {
+    height: 200px;
+  }
+  .empty-state {
+    padding: 40px 20px;
+  }
+}
 </style>

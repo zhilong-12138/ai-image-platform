@@ -169,15 +169,20 @@ async function handleSubmit() {
 
 <style scoped>
 .create-page-wrap {
+  /* Desktop: fixed width panel */
   position: fixed;
-  /*left: 240px;  sidebar width */
-  /*top: 0;*/
-  width: calc(50vw - 440px);  /* 50% of viewport */
+  width: calc(50vw - 440px);
   height: 100vh;
   overflow-y: auto;
   box-sizing: border-box;
   padding: 48px 48px 64px;
   background: var(--bg);
+}
+
+@media (max-width: 1024px) {
+  .create-page-wrap {
+    width: calc(100vw - 200px);
+  }
 }
 
 .create-page {
@@ -461,5 +466,112 @@ async function handleSubmit() {
 .btn-create:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .create-page-wrap {
+    position: static;
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    padding: 16px 16px 24px;
+    overflow-y: visible;
+  }
+  .create-page {
+    width: 100%;
+  }
+  .content-header {
+    margin-bottom: 20px;
+  }
+  .section-eyebrow {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+  .section-title {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  .section-subtitle {
+    font-size: 13px;
+  }
+  .create-section {
+    margin-bottom: 16px;
+  }
+  .create-label {
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+  .create-label-row {
+    margin-bottom: 8px;
+  }
+  .create-label-hint {
+    font-size: 11px;
+  }
+  .create-textarea {
+    min-height: 180px;
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+  .ref-images {
+    gap: 10px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ref-images::-webkit-scrollbar {
+    display: none;
+  }
+  .ref-upload-slot {
+    width: 88px;
+    height: 88px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    border-radius: 10px;
+  }
+  .ref-upload-slot svg {
+    width: 24px;
+    height: 24px;
+  }
+  .ref-upload-slot span {
+    font-size: 10px;
+  }
+  .ref-remove {
+    opacity: 1;
+    width: 24px;
+    height: 24px;
+    top: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.6);
+  }
+  .points-warning {
+    padding: 10px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .credits-row {
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .create-actions {
+    margin-top: 20px;
+  }
+  .btn-create {
+    position: static;
+    width: 100%;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    font-size: 16px;
+    border-radius: 12px;
+    box-shadow: none;
+    z-index: auto;
+  }
 }
 </style>
