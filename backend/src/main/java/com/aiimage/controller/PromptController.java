@@ -28,7 +28,7 @@ public class PromptController {
             @RequestParam(required = false) String description) {
         QueryWrapper<Prompt> wrapper = new QueryWrapper<Prompt>()
                 .eq("status", 1)
-                .orderByAsc("sort");
+                .orderByDesc("created_at");
         if (categoryId != null) {
             wrapper.eq("category_id", categoryId);
         }

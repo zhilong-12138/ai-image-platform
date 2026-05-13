@@ -2,136 +2,186 @@
 CREATE DATABASE IF NOT EXISTS ai_image_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE ai_image_db;
 
--- 1. 用户表
-CREATE TABLE sys_user (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  email VARCHAR(255) UNIQUE NOT NULL COMMENT '邮箱',
-  password VARCHAR(255) COMMENT '密码 (BCrypt)',
-  level INT DEFAULT 1 COMMENT '用户等级',
-  invite_code VARCHAR(20) UNIQUE COMMENT '用户邀请码',
-  invitee_id BIGINT COMMENT '邀请人ID (nullable)',
-  status TINYINT DEFAULT 1 COMMENT '1=正常 0=禁用',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  INDEX idx_email (email),
-  INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+create table category
+(
+    id         bigint auto_increment
+        primary key,
+    name       varchar(100)                       not null comment '分类名称',
+    code       varchar(100)                       not null comment '分类编码',
+    sort       int      default 0                 null comment '排序',
+    status     tinyint  default 1                 null comment '1=启用 0=禁用',
+    created_at datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    updated_at datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    constraint code
+        unique (code)
+);
 
--- 2. 分类表
-CREATE TABLE category (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(100) NOT NULL COMMENT '分类名称',
-  code VARCHAR(100) UNIQUE NOT NULL COMMENT '分类编码',
-  sort INT DEFAULT 0 COMMENT '排序',
-  status TINYINT DEFAULT 1 COMMENT '1=启用 0=禁用',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  INDEX idx_status (status),
-  INDEX idx_sort (sort)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+create index idx_sort
+    on category (sort);
 
--- 3. 提示词表
-CREATE TABLE prompt (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  category_id BIGINT COMMENT '分类ID',
-  title VARCHAR(255) NOT NULL COMMENT '标题',
-  description TEXT COMMENT '描述',
-  content TEXT NOT NULL COMMENT '提示词内容',
-  image_urls TEXT COMMENT '示意图URL列表 (JSON格式)',
-  params TEXT COMMENT '参数JSON (合参数配置)',
-  life_cycle INT COMMENT '生成~完成(秒)',
-  api_url VARCHAR(500) COMMENT '调用API地址',
-  api_method VARCHAR(20) COMMENT 'GET/POST',
-  api_params TEXT COMMENT '参数配置 (JSON编码器或结构)',
-  cost_points INT DEFAULT 10 COMMENT '生成消耗积分',
-  ref_image_count INT DEFAULT 0 COMMENT '参考图片数量',
-  sort INT DEFAULT 0 COMMENT '排序',
-  status TINYINT DEFAULT 1 COMMENT '1=上线 0=下架',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  INDEX idx_status (status),
-  INDEX idx_sort (sort),
-  INDEX idx_category_id (category_id),
-  FOREIGN KEY (category_id) REFERENCES category(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+create index idx_status
+    on category (status);
 
--- 4. 生成记录表
-CREATE TABLE generation_record (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT NOT NULL COMMENT '用户ID',
-  prompt_id BIGINT NOT NULL COMMENT '提示词ID',
-  params TEXT COMMENT '用户选择的参数 (JSON)',
-  ref_images TEXT COMMENT '参考图片URLs (JSON)',
-  status TINYINT DEFAULT 0 COMMENT '0=待处理 1=生成中 2=生成完成 3=失败',
-  result_images TEXT COMMENT '生成的图片URLs (JSON)',
-  external_api_response TEXT COMMENT '外部API响应 (JSON, 保留原始响应)',
-  error_msg VARCHAR(500) COMMENT '失败原因',
-  cost_points INT COMMENT '消耗积分',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  INDEX idx_user_id (user_id),
-  INDEX idx_prompt_id (prompt_id),
-  INDEX idx_status (status),
-  INDEX idx_created_at (created_at),
-  FOREIGN KEY (user_id) REFERENCES sys_user(id),
-  FOREIGN KEY (prompt_id) REFERENCES prompt(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+create table email_code
+(
+    id         bigint auto_increment
+        primary key,
+    email      varchar(255)                       not null comment '邮箱',
+    code       varchar(10)                        not null comment '验证码',
+    expire_at  datetime                           not null comment '过期时间',
+    used       tinyint  default 0                 null comment '0=未用 1=已用',
+    created_at datetime default CURRENT_TIMESTAMP null comment '创建时间'
+);
 
--- 5. 积分日志表
-CREATE TABLE point_log (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT NOT NULL COMMENT '用户ID',
-  type TINYINT NOT NULL COMMENT '1=生成消费 2=邀请奖励 3=充值 4=管理员调整',
-  amount INT NOT NULL COMMENT '变动积分 (正数=增加 负数=减少)',
-  balance INT NOT NULL COMMENT '变动后余额',
-  related_id BIGINT COMMENT '关联记录ID (generation_record.id)',
-  remark VARCHAR(255) COMMENT '备注',
-  is_settled TINYINT DEFAULT 0 COMMENT '0=未结算 1=已结算',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  INDEX idx_user_id (user_id),
-  INDEX idx_type (type),
-  INDEX idx_created_at (created_at),
-  FOREIGN KEY (user_id) REFERENCES sys_user(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+create index idx_email
+    on email_code (email);
 
--- 6. 收藏表
-CREATE TABLE favorite (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id BIGINT NOT NULL COMMENT '用户ID',
-  prompt_id BIGINT NOT NULL COMMENT '提示词ID',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '收藏时间',
-  UNIQUE KEY uk_user_prompt (user_id, prompt_id),
-  INDEX idx_user_id (user_id),
-  FOREIGN KEY (user_id) REFERENCES sys_user(id),
-  FOREIGN KEY (prompt_id) REFERENCES prompt(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+create index idx_expire_at
+    on email_code (expire_at);
 
--- 7. 邮箱验证码表
-CREATE TABLE email_code (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  email VARCHAR(255) NOT NULL COMMENT '邮箱',
-  code VARCHAR(10) NOT NULL COMMENT '验证码',
-  expire_at DATETIME NOT NULL COMMENT '过期时间',
-  used TINYINT DEFAULT 0 COMMENT '0=未用 1=已用',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  INDEX idx_email (email),
-  INDEX idx_expire_at (expire_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+create table favorite
+(
+    id         bigint auto_increment
+        primary key,
+    user_id    bigint                             not null comment '用户ID',
+    prompt_id  bigint                             not null comment '提示词ID',
+    created_at datetime default CURRENT_TIMESTAMP null comment '收藏时间',
+    constraint uk_user_prompt
+        unique (user_id, prompt_id)
+);
 
--- 8. 系统配置表
-CREATE TABLE system_config (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  config_key VARCHAR(100) UNIQUE NOT NULL COMMENT '配置键 (一一对应)',
-  config_value VARCHAR(500) NOT NULL COMMENT '配置值',
-  description VARCHAR(255) COMMENT '配置说明',
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  INDEX idx_config_key (config_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+create index idx_user_id
+    on favorite (user_id);
 
--- 初始化系统配置
-INSERT INTO system_config (config_key, config_value, description) VALUES
-('init_points', '100', '新用户初始积分'),
-('invite_points', '10', '邀请用户获得积分'),
-('invited_points', '10', '被邀请用户获得积分'),
-('api_key', 'marsware.ai', '外部API Key'),
-('oss_base_url', 'https://oss.example.com', 'OSS 公开访问 URL');
+create index prompt_id
+    on favorite (prompt_id);
+
+create table prompt
+(
+    id              bigint auto_increment
+        primary key,
+    title           varchar(255)                       not null comment '标题',
+    description     text                               null comment '描述',
+    content         text                               not null comment '提示词内容',
+    image_urls      text                               null comment '示意图URL列表 (JSON格式)',
+    params          text                               null comment '参数JSON (合参数配置)',
+    life_cycle      int                                null comment '生成~完成(秒)',
+    api_url         varchar(500)                       null comment '调用API地址',
+    api_method      varchar(20)                        null comment 'GET/POST',
+    api_params      text                               null comment '参数配置 (JSON编码器或结构)',
+    sort            int      default 0                 null comment '排序',
+    status          tinyint  default 1                 null comment '1=上线 0=下架',
+    created_at      datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    updated_at      datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    cost_points     int      default 10                null,
+    ref_image_count int      default 0                 null,
+    category_id     bigint                             null comment '分类ID'
+);
+
+create index idx_category_id
+    on prompt (category_id);
+
+create index idx_sort
+    on prompt (sort);
+
+create index idx_status
+    on prompt (status);
+
+create index prompt_category_id_index
+    on prompt (category_id);
+
+create table sys_user
+(
+    id          bigint auto_increment
+        primary key,
+    email       varchar(255)                       not null comment '邮箱',
+    password    varchar(255)                       null comment '密码 (BCrypt)',
+    level       int      default 1                 null comment '用户等级',
+    invite_code varchar(20)                        null comment '用户邀请码',
+    status      tinyint  default 1                 null comment '1=正常 0=禁用',
+    created_at  datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    updated_at  datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    invitee_id  bigint                             null,
+    constraint invite_code
+        unique (invite_code)
+);
+
+create table generation_record
+(
+    id                    bigint auto_increment
+        primary key,
+    user_id               bigint                             not null comment '用户ID',
+    prompt_id             bigint                             not null comment '提示词ID',
+    params                text                               null comment '用户选择的参数 (JSON)',
+    ref_images            text                               null comment '参考图片URLs (JSON)',
+    status                tinyint  default 0                 null comment '0=待处理 1=生成中 2=生成完成 3=失败',
+    result_images         text                               null comment '生成的图片URLs (JSON)',
+    external_api_response json                               null comment '外部API响应 (JSON, 保留原始响应)',
+    error_msg             varchar(500)                       null comment '失败原因',
+    cost_points           int                                null comment '消耗积分',
+    created_at            datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    updated_at            datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    constraint generation_record_ibfk_1
+        foreign key (user_id) references sys_user (id),
+    constraint generation_record_ibfk_2
+        foreign key (prompt_id) references prompt (id)
+);
+
+create index idx_created_at
+    on generation_record (created_at);
+
+create index idx_prompt_id
+    on generation_record (prompt_id);
+
+create index idx_status
+    on generation_record (status);
+
+create index idx_user_id
+    on generation_record (user_id);
+
+create table point_log
+(
+    id         bigint auto_increment
+        primary key,
+    user_id    bigint                             not null comment '用户ID',
+    type       tinyint                            not null comment '1=生成消费 2=邀请奖励 3=充值 4=管理员调整',
+    amount     int                                not null comment '变动积分 (正数=增加 负数=减少)',
+    balance    int                                not null comment '变动后余额',
+    remark     varchar(255)                       null comment '备注',
+    is_settled tinyint  default 0                 null comment '0=未结算 1=已结算',
+    created_at datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    related_id bigint                             null,
+    constraint point_log_ibfk_1
+        foreign key (user_id) references sys_user (id)
+);
+
+create index idx_created_at
+    on point_log (created_at);
+
+create index idx_type
+    on point_log (type);
+
+create index idx_user_id
+    on point_log (user_id);
+
+create index idx_email
+    on sys_user (email);
+
+create index idx_status
+    on sys_user (status);
+
+create table system_config
+(
+    id           bigint auto_increment
+        primary key,
+    config_key   varchar(100)                       not null comment '配置键 (一一对应)',
+    config_value varchar(500)                       not null comment '配置值',
+    description  varchar(255)                       null comment '配置说明',
+    updated_at   datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    constraint config_key
+        unique (config_key)
+);
+
+create index idx_config_key
+    on system_config (config_key);
+
